@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ResumeAI • Resume Studio</title>
+  <meta name="description" content="Chat with an uploaded resume, extract a profile, run ATS matching, and prep interviews." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css?v=ui8" />
+</head>
+<body class="studio-theme">
+
+  <!-- App Wrapper -->
+  <div class="app-container">
+    
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+      <div class="brand-section">
+        <div class="brand-logo">
+          <div class="logo-icon-wrap">
+            <svg class="logo-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+          </div>
+          <div class="logo-text">
+            <span class="brand-title">Resume<span class="gradient-text">AI</span></span>
+            <span class="brand-badge">Studio</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Resume Switcher & Action Bar -->
+      <div class="header-actions">
+        <!-- Active Resume Selector Dropdown -->
+        <div class="resume-selector-wrap">
+          <label class="selector-label" for="resumeSelect">Active Resume:</label>
+          <div class="custom-select-wrapper">
+            <select id="resumeSelect" class="resume-dropdown">
+              <option value="">Loading resumes...</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Sample Resume Quick Switch -->
+        <div class="dropdown-menu-container">
+          <button id="btnSampleResumes" class="btn btn-secondary btn-sm" title="Load sample resumes for testing">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+            <span>Samples</span>
+          </button>
+          <div id="sampleDropdownMenu" class="dropdown-popup hidden">
+            <div class="dropdown-header">Select a Sample Resume</div>
+            <button class="dropdown-item" data-sample="alex_chen_senior_ai_engineer">
+              <div class="item-title">Alex Chen</div>
+              <div class="item-sub">Lead AI & Full-Stack Engineer (2 Pages, RAG, AWS)</div>
+            </button>
+            <button class="dropdown-item" data-sample="maya_patel_cloud_devops_architect">
+              <div class="item-title">Maya Patel</div>
+              <div class="item-sub">Senior Cloud & DevOps Architect (Kubernetes, GCP)</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Upload PDF Button -->
+        <button id="btnUploadModal" class="btn btn-primary btn-sm">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          <span>Upload Resume</span>
+        </button>
+
+        <!-- API Key Config Button -->
+        <button id="btnApiKeyModal" class="btn btn-glass btn-sm" title="Configure Gemini API Key">
+          <span id="apiKeyStatusDot" class="status-dot dot-offline"></span>
+          <span id="apiKeyStatusText">Gemini Key</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Navigation Tabs -->
+    <nav class="main-nav-tabs">
+      <button class="tab-btn active" data-tab="tab-chat">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span>Chat with bot</span>
+      </button>
+
+      <button class="tab-btn" data-tab="tab-profile">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        <span>Structured Profile</span>
+      </button>
+
+      <button class="tab-btn" data-tab="tab-ats">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <circle cx="12" cy="12" r="6"></circle>
+          <circle cx="12" cy="12" r="2"></circle>
+        </svg>
+        <span>ATS Job Matcher</span>
+      </button>
+
+      <button class="tab-btn" data-tab="tab-audit">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <polyline points="9 15 11 17 15 13"></polyline>
+        </svg>
+        <span>Resume Audit & Score</span>
+      </button>
+
+      <button class="tab-btn" data-tab="tab-interview">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+          <line x1="12" y1="19" x2="12" y2="22"></line>
+        </svg>
+        <span>Interview Coach</span>
+      </button>
+    </nav>
+
+    <!-- Content Sections -->
+    <main class="main-content">
+      
+      <!-- TAB 1: RAG CHAT & Q&A -->
+      <section id="tab-chat" class="tab-pane active">
+        <div class="chat-layout">
+          
+          <!-- Chat Feed -->
+          <div class="chat-container card-glass">
+            
+            <!-- Chat Header / Context info -->
+            <div class="chat-context-header">
+              <div class="active-doc-info">
+                <span class="status-indicator"></span>
+                <span class="active-doc-title" id="chatActiveDocTitle">Chat about: your resume</span>
+                <span class="rag-mode-tag" id="ragModeTag">MiniLM RAG</span>
+              </div>
+              <button id="btnClearChat" class="btn btn-icon-only" title="Clear Chat History">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Messages Stream -->
+            <div class="chat-messages" id="chatMessages">
+              <!-- Welcome Assistant Message -->
+              <div class="message-wrapper assistant">
+                <div class="message-avatar">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path>
+                    <path d="M7 7h.01"></path>
+                  </svg>
+                </div>
+                <div class="message-bubble">
+                  <div class="message-sender">Resume bot</div>
+                  <div class="message-text">
+                    Hi — I’m your resume bot. Load or select a file, then ask me anything about it: skills, projects, education, internships, or a full summary.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Suggested Prompt Pills -->
+            <div class="suggested-prompts-bar" id="suggestedPrompts">
+              <span class="suggested-label">Try asking:</span>
+              <button class="prompt-pill" data-prompt="What technical skills are listed on this resume?">Skills on this file</button>
+              <button class="prompt-pill" data-prompt="Summarize the projects on this resume.">Summarize projects</button>
+              <button class="prompt-pill" data-prompt="What education and internships are mentioned?">Education & internships</button>
+              <button class="prompt-pill" data-prompt="Give me a short overview of this candidate.">Quick overview</button>
+              <button class="prompt-pill" data-prompt="What tools and technologies did they use?">Tools & tech</button>
+            </div>
+
+            <!-- Chat Input Area -->
+            <div class="chat-input-container">
+              <form id="chatForm" class="chat-form">
+                <textarea 
+                  id="chatInput" 
+                  class="chat-textarea" 
+                  placeholder="Message the bot about this file..." 
+                  rows="1"
+                  required
+                ></textarea>
+                <button type="submit" id="btnSendQuery" class="btn btn-send">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                  </svg>
+                </button>
+              </form>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: STRUCTURED PROFILE -->
+      <section id="tab-profile" class="tab-pane">
+        <div class="profile-layout">
+          
+          <!-- Candidate Banner Card -->
+          <div class="profile-banner card-glass">
+            <div class="candidate-avatar-wrap">
+              <div class="candidate-avatar" id="profAvatar">AC</div>
+            </div>
+            <div class="candidate-info-primary">
+              <h2 id="profName" class="candidate-title">Alex Chen</h2>
+              <div class="candidate-contacts">
+                <span class="contact-item" id="profEmail">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                  <span>alex.chen.ai@example.com</span>
+                </span>
+                <span class="contact-item" id="profPhone">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                  <span>(555) 382-9102</span>
+                </span>
+                <a class="contact-link" id="profLinkedin" href="#" target="_blank">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+                  <span>LinkedIn</span>
+                </a>
+                <a class="contact-link" id="profGithub" href="#" target="_blank">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+                  <span>GitHub</span>
+                </a>
+              </div>
+            </div>
+            <div class="profile-stats-grid">
+              <div class="stat-box">
+                <span class="stat-num" id="profSkillsCount">34</span>
+                <span class="stat-name">Skills Found</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-num" id="profPagesCount">2</span>
+                <span class="stat-name">Pages</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-num text-emerald" id="profCompleteness">100%</span>
+                <span class="stat-name">Completeness</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Skills Grid Card -->
+          <div class="skills-card card-glass">
+            <h3 class="card-section-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              Extracted Technical Skills Matrix
+            </h3>
+            <div class="skills-categories-grid" id="profSkillsCategories">
+              <!-- Dynamically populated skills pills -->
+            </div>
+          </div>
+
+          <!-- Timeline Grid: Experience & Education -->
+          <div class="timeline-grid">
+            <div class="timeline-card card-glass">
+              <h3 class="card-section-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                Work Experience Summary
+              </h3>
+              <div class="section-body-text" id="profExperienceText">Loading...</div>
+            </div>
+
+            <div class="timeline-card card-glass">
+              <h3 class="card-section-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+                Education & Academic History
+              </h3>
+              <div class="section-body-text" id="profEducationText">Loading...</div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- TAB 3: ATS JOB MATCHER -->
+      <section id="tab-ats" class="tab-pane">
+        <div class="ats-layout">
+          
+          <!-- Left: Job Description Form -->
+          <div class="ats-input-card card-glass">
+            <div class="ats-header">
+              <h3 class="card-section-title">Target Job Description (JD)</h3>
+              <div class="sample-jd-buttons">
+                <button id="btnSampleJdAi" class="btn btn-xs btn-secondary">Sample: Senior AI Engineer</button>
+                <button id="btnSampleJdDevOps" class="btn btn-xs btn-secondary">Sample: DevOps Lead</button>
+              </div>
+            </div>
+            <p class="ats-hint">Paste any job description to calculate ATS keyword match, skill gap analysis, and tailored recommendations.</p>
+            <textarea id="jobDescInput" class="ats-textarea" rows="10" placeholder="Paste full Job Description text here..."></textarea>
+            <div class="ats-actions">
+              <button id="btnRunJobMatch" class="btn btn-primary" type="button">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                Analyze match
+              </button>
+            </div>
+          </div>
+
+          <!-- Right: ATS Results View -->
+          <div class="ats-results-card card-glass" id="atsResultsPanel">
+            <div class="ats-score-hero">
+              <div class="score-ring-wrap">
+                <div class="score-ring-circle">
+                  <span class="score-val" id="atsScoreVal">--%</span>
+                  <span class="score-lbl">ATS Match</span>
+                </div>
+              </div>
+              <div class="score-summary">
+                <h4 id="atsVerdictTitle">Awaiting Job Description</h4>
+                <p id="atsVerdictSubtitle">Click 'Run ATS Match Analysis' after pasting a job description.</p>
+              </div>
+            </div>
+
+            <!-- Matched & Missing Skills -->
+            <div class="ats-skills-comparison">
+              <div class="ats-skills-box matched">
+                <div class="box-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                  On your resume (<span id="countMatched">0</span>)
+                </div>
+                <div class="chips-container" id="matchedSkillsChips"></div>
+              </div>
+
+              <div class="ats-skills-box missing">
+                <div class="box-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                  Required by JD, missing on resume (<span id="countMissing">0</span>)
+                </div>
+                <div class="chips-container" id="missingSkillsChips"></div>
+              </div>
+            </div>
+
+            <div class="ats-gap-plan" id="atsGapPlan">
+              <h4 class="feedback-title">Skills this job needs that you should add</h4>
+              <p class="ats-hint" id="gapPlanIntro">Run an analysis to see which JD skills are missing from your resume, plus where to add them.</p>
+              <div id="skillSuggestionsList" class="gap-cards"></div>
+            </div>
+
+            <!-- Recommendations / AI Feedback -->
+            <div class="ats-feedback-box">
+              <h4 class="feedback-title">💡 ATS Optimization Tips & Feedback</h4>
+              <div class="feedback-content" id="atsFeedbackContent">
+                Run an analysis to see targeted resume improvement suggestions.
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: RESUME AUDIT & CRITIQUE -->
+      <section id="tab-audit" class="tab-pane">
+        <div class="audit-layout">
+          
+          <!-- Audit Score Overview -->
+          <div class="audit-hero-card card-glass">
+            <div class="hero-score-left">
+              <div class="big-score-badge">
+                <span class="big-number" id="auditOverallScore">--</span>
+                <span class="big-label">Overall Quality Score</span>
+              </div>
+            </div>
+            <div class="pillar-bars-right" id="auditPillars">
+              <!-- Pillar score progress bars -->
+            </div>
+          </div>
+
+          <!-- Action Verbs & Metrics Grid -->
+          <div class="audit-details-grid">
+            <div class="audit-card card-glass">
+              <h3 class="card-section-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                Strong Action Verbs (<span id="auditVerbsCount">0</span> Found)
+              </h3>
+              <p class="audit-desc">Strong action verbs lead executive bullets and trigger recruiter keyword scanners.</p>
+              <div class="chips-container" id="auditVerbsChips"></div>
+            </div>
+
+            <div class="audit-card card-glass">
+              <h3 class="card-section-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                Quantified Impact & Metrics (<span id="auditMetricsCount">0</span> Detected)
+              </h3>
+              <p class="audit-desc">Quantified metrics (percentages, revenues, user counts) increase interview callbacks by 3x.</p>
+              <div class="chips-container" id="auditMetricsChips"></div>
+            </div>
+          </div>
+
+          <!-- AI Optimization Recommendations -->
+          <div class="audit-card card-glass">
+            <h3 class="card-section-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+              Expert AI Bullet Critique & Rewrite Suggestions
+            </h3>
+            <div class="ai-critique-text" id="auditAiSuggestions">
+              Loading critique analysis...
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- TAB 5: INTERVIEW COACH -->
+      <section id="tab-interview" class="tab-pane">
+        <div class="interview-layout">
+          <div class="interview-header-card card-glass">
+            <div class="interview-hero-text">
+              <h2>Tailored Interview Questions</h2>
+              <p>Generated dynamically by analyzing the specific projects, technologies, and metrics in this resume.</p>
+            </div>
+            <button id="btnRefreshInterview" class="btn btn-secondary">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"></path></svg>
+              Regenerate Questions
+            </button>
+          </div>
+
+          <div class="interview-questions-list" id="interviewQuestionsList">
+            <!-- Questions rendered dynamically -->
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Upload Resume Modal -->
+    <div id="uploadModal" class="modal-overlay hidden">
+      <div class="modal-card card-glass">
+        <div class="modal-header">
+          <h3>Upload Candidate Resume</h3>
+          <button class="btn-close-modal" id="btnCloseUploadModal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="drop-zone" id="dropZone">
+            <svg class="drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <p class="drop-title">Drag & drop your Resume PDF, DOCX, or TXT here</p>
+            <p class="drop-sub">Supported formats: .pdf, .docx, .txt (up to 10MB)</p>
+            <input type="file" id="fileInput" accept=".pdf,.docx,.txt" class="hidden-file-input" />
+            <button class="btn btn-secondary btn-sm" id="btnBrowseFiles">Browse Files</button>
+          </div>
+          <div id="uploadProgress" class="upload-progress-wrap hidden">
+            <div class="progress-bar-bg"><div id="uploadProgressBar" class="progress-bar-fill"></div></div>
+            <span id="uploadStatusText" class="progress-status-text">Parsing and indexing chunks...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- API Key Configuration Modal -->
+    <div id="apiKeyModal" class="modal-overlay hidden">
+      <div class="modal-card card-glass">
+        <div class="modal-header">
+          <h3>Configure Gemini API Key</h3>
+          <button class="btn-close-modal" id="btnCloseApiKeyModal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-desc">
+            Enter a Gemini API key from
+            <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>
+            (usually starts with <code>AIza</code>). Validation uses a short HTTPS check. If it fails, click
+            <strong>Use Offline Fallback</strong> — chat and ATS still work.
+          </p>
+          <div class="form-group">
+            <label for="apiKeyInput" class="form-label">Gemini API Key</label>
+            <input type="password" id="apiKeyInput" class="form-input" placeholder="AIzaSy..." />
+          </div>
+          <div id="apiKeyFeedback" class="api-feedback-msg hidden"></div>
+          <div class="modal-actions">
+            <button id="btnSaveApiKey" class="btn btn-primary">Save & Validate Key</button>
+            <button id="btnUseOfflineMode" class="btn btn-secondary">Use Offline Fallback</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification Hub -->
+    <div id="toastHub" class="toast-hub"></div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="/static/app.js?v=ui8"></script>
+</body>
+</html>
